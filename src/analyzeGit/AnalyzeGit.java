@@ -88,7 +88,7 @@ public class AnalyzeGit {
 
 	public static void main(String[] args) throws IOException, GitAPIException,
 			Exception {
-		
+
 		// ファイル・フォルダ処理
 		File repos = new File(reposPath);
 		reposPaths = repos.list();
