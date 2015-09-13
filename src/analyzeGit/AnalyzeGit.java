@@ -684,7 +684,6 @@ public class AnalyzeGit {
 	 * @return
 	 * @throws Exception
 	 */
-	@SuppressWarnings("unused")
 	private static List<Pair<RevCommit, List<Multiset<String>>>> getGraftableLineList134(
 			List<Pair<RevCommit, Issue>> list, Repository repo,Set<String> otherProjectSources)
 			throws Exception {
@@ -1071,7 +1070,7 @@ public class AnalyzeGit {
 		return sourceLines;
 	}
 
-	@SuppressWarnings("unchecked")
+
 	/**
 	 * 与えられた2つのコミットから追加された行を正規化したものの集合を返す
 	 * 追加がなければ空集合が帰る
