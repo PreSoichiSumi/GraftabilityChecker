@@ -20,12 +20,12 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 
 import analyzeGit.Watch;
 
-import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.google.common.collect.Multiset;
 
 /**
- * @author s-sumi 1つのリポジトリを解析する ・バグ修正コミットの特定 ・コミットで追加されたソースコード行の特定
- *         ・親リビジョンまたはデータセット中にソースコード行が現れるか調べる
+ * @author s-sumi
+ * 1つのリポジトリを解析する ・バグ修正コミットの特定 ・コミットで追加されたソースコード行の特定
+ * ・親リビジョンまたはデータセット中にソースコード行が現れるか調べる
  */
 public class RepositoryAnalyzer {
 	private final File repos;
@@ -35,29 +35,34 @@ public class RepositoryAnalyzer {
 	private final JiraIssueDumper jIssueDumper; // そのリポジトリに関係したissueを取得する
 	private final CommitRetriever cRetriever;
 	private final GraftableLineExtracter gLineExtracter;
-
+	private final String issueDBPath;
+	private final String datasetDBPath;
 	public RepositoryAnalyzer(File rep, Set<String> dSet,
-			String output) throws Exception {
+			String output,String issueDBPath,String datasetDBPath) throws Exception {
 		this.outputPath = output;
 		this.repos = rep;
 		this.dataSet = dSet;
+		this.issueDBPath=issueDBPath;
+		this.datasetDBPath=datasetDBPath;
 		setRepository();
 		String projectName = rep.getName();
 		this.jIssueDumper = new JiraIssueDumper(projectName);
-		this.cRetriever = new CommitRetriever(repository,
-				jIssueDumper.getIssueList(), projectName);
-		this.gLineExtracter = new GraftableLineExtracter(repository, dataSet,
-				cRetriever.retrieveCommits());
+		/*this.cRetriever = new CommitRetriever(repository,
+				jIssueDumper.getIssueList(), projectName);*/
+		this.cRetriever= new CommitRetriever(repository, projectName);
+//		this.gLineExtracter = new GraftableLineExtracter(repository, dataSet,
+//				cRetriever.retrieveCommits2(issueDBPath));
+		this.gLineExtracter = new GraftableLineExtracter(repository, datasetDBPath
+				, cRetriever.retrieveCommits2(issueDBPath));
 	}
-
+	@Deprecated
 	public void execute() throws Exception {
 		PrintWriter pw = getPrintWriter(repos);
 
 		Watch wtch = new Watch();
 
 		System.out.println("GettingClosedCommit-" + repos.getName());
-		List<Pair<RevCommit, Issue>> closedChildCommits = cRetriever
-				.retrieveCommits();// returnされたcommitは必ず親を持つ
+		List<RevCommit> closedChildCommits =null;// cRetriever.retrieveCommits2();
 		wtch.check("GetClosedChildCommit");
 
 		System.out.println("End\nGettingGraftableLineList-" + repos.getName());
@@ -75,10 +80,39 @@ public class RepositoryAnalyzer {
 		System.out.println("End");
 		wtch.check("CalcGraftability-Step2");
 		printGraftableLinenNum(graftableLineList, repos.getName());
-		outputIssueType(closedChildCommits, outputPath + repos.getName() + "\\"
-				+ "CommitAndIssueType.txt");
-		wtch.check("outputIssueType");
-		System.out.println("OutputIssueType");
+
+		pw.println("graftability : " + grftblty);
+		pw.println();
+		pw.println(wtch);
+
+		outputAddedLines(outputPath + repos.getName() + "\\" + "addedLines.txt",
+				graftableLineList);
+		outputGraftableLines134(outputPath + repos.getName() + "\\"
+				+ "graftableLines.txt", graftableLineList); // otherProjAddedLineはなし
+		System.out.println("graftability : " + grftblty);
+		pw.close();
+	}
+
+	public void execute2() throws Exception {
+		PrintWriter pw = getPrintWriter(repos);
+
+		Watch wtch = new Watch();
+
+		System.out.println("End\nGettingGraftableLineList-" + repos.getName());
+		List<Pair<RevCommit, List<Multiset<String>>>> graftableLineList = gLineExtracter
+				.getGraftableLineList134_DB();
+		wtch.check("GetGraftableLineList");
+
+		System.out.println("End\nCalcingGraftability-Step1-" + repos.getName());
+		List<Pair<String, List<Double>>> grdentGrftblty = calcGraftabliry13(
+				graftableLineList, repos.getName());
+		wtch.check("CalcGraftability-Step1");
+
+		System.out.println("End\nCalcingGraftability-Step2-" + repos.getName());
+		Double grftblty = calcGrafability(grdentGrftblty);
+		System.out.println("End");
+		wtch.check("CalcGraftability-Step2");
+		printGraftableLinenNum(graftableLineList, repos.getName());
 
 		pw.println("graftability : " + grftblty);
 		pw.println();
@@ -216,17 +250,6 @@ public class RepositoryAnalyzer {
 		res.add(Double.valueOf((double)( sets.get(1).size()) +sets.get(3).size())/
 				Double.valueOf((double) sets.get(0).size()));
 		return res;
-	}
-	private void outputIssueType(List<Pair<RevCommit, Issue>> pairList,String filePath)throws IOException{
-		//IssueType type=null;
-		PrintWriter pw = getPrintWriterString(filePath);
-
-		for (Pair<RevCommit, Issue> pair : pairList) {
-			pw.println(pair.getLeft().getId().toString()+","+pair.getRight().getIssueType().toString());
-		}
-
-
-
 	}
 
 	private PrintWriter getPrintWriter(File repos) throws IOException {

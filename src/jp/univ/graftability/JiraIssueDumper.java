@@ -15,6 +15,7 @@ import com.atlassian.util.concurrent.Promise;
 
 public class JiraIssueDumper {
 	private String projectName;
+	private List<String> projectList;
 	final private int SLEEP_TIME=5000;
 	final private int PAGE_SIZE=50;
 
@@ -45,7 +46,7 @@ public class JiraIssueDumper {
 			int resTotal = searchJqlPromise.claim().getTotal();
 			int pageItrt = 0;
 			if (resTotal != 0) {
-				while (pageItrt <= resTotal) { // ページイテレータがAPIから見つからなかったから自分でめくる
+				while (pageItrt <= resTotal) { // ページイテレータがAPIに見つからなかったから自分でめくる
 					searchJqlPromise = restClient
 							.getSearchClient()
 							.searchJql(

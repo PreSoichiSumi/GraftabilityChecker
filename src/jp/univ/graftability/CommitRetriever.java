@@ -24,7 +24,7 @@ import com.atlassian.jira.rest.client.api.domain.Issue;
 /**
  *
  * @author s-sumi
- * リポジトリから所望の条件のコミットを取得するクラス
+ * リポジトリからある条件のコミットを取得するクラス
  * コンストラクタでrepository, projectName, issueListの
  * 設定が必要とされます。
  */
@@ -32,7 +32,7 @@ public class CommitRetriever {
 	private Repository repo;
 	private List<Iterable<Issue>> issueList;
 	private String projectName;
-
+	@Deprecated
 	public CommitRetriever(Repository repo, List<Iterable<Issue>> issueList,
 			String projectName) {
 		super();
@@ -40,6 +40,12 @@ public class CommitRetriever {
 		this.issueList = issueList;
 		this.projectName = projectName;
 	}
+	public CommitRetriever(Repository repo,String projectName) {
+		super();
+		this.repo = repo;
+		this.projectName = projectName;
+	}
+	@Deprecated
 	/**
 	 * 子を持ち，closedかつFixedなCommitを返します．
 	 * @param repo
@@ -63,7 +69,23 @@ public class CommitRetriever {
 		}
 		return resList;
 	}
-	private  List<RevCommit> getCommits(RevSort direction) throws Exception {
+	/**
+	 * 子を持ち，closedかつFixedなCommitを返します．
+	 * @param repo
+	 * @param projectName
+	 * @return
+	 * @throws Exception
+	 */
+	public List<RevCommit> retrieveCommits2(String issueDBPath) throws Exception {
+		List<RevCommit> comList = getCommits(RevSort.REVERSE);	//一瞬
+		List<RevCommit> childComList = getChildCommits(comList);
+		//List<Iterable<Issue>> issueList = getIssueList(projectName);	//1473で数分
+		DBController issueController = new DBController(issueDBPath);
+		List<RevCommit> resList = issueController.retrieveClosedCommit(childComList, projectName);
+		return resList;
+	}
+
+	private List<RevCommit> getCommits(RevSort direction) throws Exception {
 		List<RevCommit> commitList = new ArrayList<>();
 		RevWalk rw = getInitializedRevWalk(repo, direction);
 		RevCommit commit = rw.next();
@@ -105,7 +127,7 @@ public class CommitRetriever {
 	 * @param project
 	 * @return key (UpperCase)
 	 */
-	private static String getIssueKey(String target,String project){
+	private String getIssueKey(String target,String project){
 		//apacheプロジェクトのIssuekey命名規則
 		String regex=project+"-"+"[1-9]+";//プロジェクト名，ハイフン，数字1つ以上
 

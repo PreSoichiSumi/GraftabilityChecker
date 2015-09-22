@@ -5,32 +5,15 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class GraftabilityChecker {
-	private String reposPath;
-	private String outputPath;
-	private String dataSetPath;
+	private final String reposPath;
+	private final String outputPath;
+	private final String dataSetPath;
 	private File reposArray[];
 
-	public String getReposPath() {
-		return reposPath;
-	}
-
-	public void setReposPath(String reposPath) {
+	public GraftabilityChecker(String reposPath, String dataSetPath, String outputPath) {
+		super();
 		this.reposPath = reposPath;
-	}
-
-	public String getOutputPath() {
-		return outputPath;
-	}
-
-	public void setOutputPath(String outputPath) {
 		this.outputPath = outputPath;
-	}
-
-	public String getDataSetPath() {
-		return dataSetPath;
-	}
-
-	public void setDataSetPath(String dataSetPath) {
 		this.dataSetPath = dataSetPath;
 	}
 
@@ -42,7 +25,7 @@ public class GraftabilityChecker {
 		dataSet = DataSetController.getRawSourceString(dataSetPath);
 
 		for (File repos : reposArray) {
-			RepositoryAnalyzer rAnalyzer=new RepositoryAnalyzer(repos, dataSet, outputPath);
+			RepositoryAnalyzer rAnalyzer=new RepositoryAnalyzer(repos, dataSet, outputPath,"","");
 			rAnalyzer.execute();
 		}
 	}

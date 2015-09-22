@@ -47,7 +47,7 @@
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
         <!--version>r08</version -->
-        <version>14.0-rc1</version>
+        <version>11.0</version>
     </dependency>
     <dependency>
         <groupId>org.codehaus.jettison</groupId>
@@ -78,6 +78,11 @@
     	<groupId>org.apache.commons</groupId>
     	<artifactId>commons-lang3</artifactId>
     	<version>3.4</version>
+    </dependency>
+    <dependency>
+    	<groupId>org.xerial</groupId>
+    	<artifactId>sqlite-jdbc</artifactId>
+    	<version>3.8.11.1</version>
     </dependency>
   </dependencies>
   <dependencyManagement>

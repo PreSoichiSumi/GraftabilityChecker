@@ -21,7 +21,6 @@ import org.eclipse.text.edits.TextEdit;
 import analyzeGit.CommentRemover;
 import analyzeGit.SourceVisitor;
 
-import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.LinkedHashMultiset;
 import com.google.common.collect.Multiset;
@@ -29,21 +28,34 @@ import com.google.common.collect.Multiset;
 public class GraftableLineExtracter {
 	private Repository repo;
 	private Set<String> dataSet;
-	private List<Pair<RevCommit, Issue>> analysisTargets;
+	private List<RevCommit> analysisTargets;
+	private String dataSetDBPath;
+	private DBController dataSetDBController;
 	final private int ADDED_LINES = 0;
 	final private int PARENT_GRAFTABLE = 1;
 	final private int ANCESTOR_GRAFTABLE = 2;
 	final private int DATASET_GRAFTABLE = 3;
 	final private int UNGRAFTABLE = 4;
 
+	@Deprecated
 	public GraftableLineExtracter(Repository repo, Set<String> dataSet,
-			List<Pair<RevCommit, Issue>> analysisTargets) {
+			List<RevCommit> analysisTargets) {
 		super();
 		this.repo = repo;
 		this.dataSet = dataSet;
 		this.analysisTargets = analysisTargets;
 	}
 
+	public GraftableLineExtracter(Repository repo, String datasetDBPath,
+			List<RevCommit> analysisTargets) {
+		super();
+		this.repo = repo;
+		this.dataSetDBPath = datasetDBPath;
+		this.analysisTargets = analysisTargets;
+		this.dataSetDBController = new DBController(datasetDBPath);
+	}
+
+	@Deprecated
 	/**
 	 * @return
 	 * @throws Exception
@@ -51,8 +63,8 @@ public class GraftableLineExtracter {
 	public List<Pair<RevCommit, List<Multiset<String>>>> getGraftableLineList134()
 			throws Exception {
 		List<Pair<RevCommit, List<Multiset<String>>>> graftableLineList = new ArrayList<Pair<RevCommit, List<Multiset<String>>>>();
-		for (Pair<RevCommit, Issue> pair : analysisTargets) {
-			ChangeAnalyzer cAnalyzer = new ChangeAnalyzer(pair.getLeft(), repo);
+		for (RevCommit com : analysisTargets) {
+			ChangeAnalyzer cAnalyzer = new ChangeAnalyzer(com, repo);
 
 			List<Multiset<String>> lineSetTmp = new ArrayList<>();
 
@@ -66,16 +78,50 @@ public class GraftableLineExtracter {
 				continue; // 追加された行がなければ処理しない
 
 			lineSetTmp.get(0).addAll(addedLines);
-			lineSetTmp = getGraftableLines134(pair.getLeft(),lineSetTmp);
+			lineSetTmp = getGraftableLines134(com, lineSetTmp);
 			graftableLineList
 					.add(new MutablePair<RevCommit, List<Multiset<String>>>(
-							pair.getLeft(), lineSetTmp));
+							com, lineSetTmp));
 
 			System.out.println("commit solved");
 		}
 		return graftableLineList;
 	}
 
+	/**
+	 * @return
+	 * @throws Exception
+	 */
+	public List<Pair<RevCommit, List<Multiset<String>>>> getGraftableLineList134_DB()
+			throws Exception {
+		dataSetDBController.prepareForCheckingDataSet();
+		List<Pair<RevCommit, List<Multiset<String>>>> graftableLineList = new ArrayList<Pair<RevCommit, List<Multiset<String>>>>();
+		for (RevCommit com : analysisTargets) {
+			ChangeAnalyzer cAnalyzer = new ChangeAnalyzer(com, repo);
+
+			List<Multiset<String>> lineSetTmp = new ArrayList<>();
+
+			for (int i = 0; i < 5; i++) {
+				lineSetTmp.add(LinkedHashMultiset.create());
+			}
+
+			Multiset<String> addedLines = cAnalyzer.getAddedLineSet();
+
+			if (addedLines.isEmpty())
+				continue; // 追加された行がなければ処理しない
+
+			lineSetTmp.get(0).addAll(addedLines);
+			lineSetTmp = getGraftableLines134_DB(com, lineSetTmp);
+			graftableLineList
+					.add(new MutablePair<RevCommit, List<Multiset<String>>>(
+							com, lineSetTmp));
+
+			System.out.println("commit solved");
+		}
+		return graftableLineList;
+	}
+
+	@Deprecated
 	/**
 	 * @param graftableLineList
 	 *            (addedLinesを除いて空)
@@ -94,6 +140,29 @@ public class GraftableLineExtracter {
 				graftableLineList.get(3).add(str);
 			} else {
 				graftableLineList.get(4).add(str);
+			}
+		}
+		return graftableLineList;
+	}
+
+	/**
+	 * @param graftableLineList
+	 *            (addedLinesを除いて空)
+	 * @return graftableLineList
+	 * @throws Exception
+	 */
+	private List<Multiset<String>> getGraftableLines134_DB(RevCommit commit,
+			List<Multiset<String>> graftableLineList) throws Exception {
+
+		Multiset<String> parentLines = getNormalizedSourceLines(
+				commit.getParent(ADDED_LINES), repo);
+		for (String str : graftableLineList.get(ADDED_LINES)) {
+			if (parentLines.contains(str)) {
+				graftableLineList.get(PARENT_GRAFTABLE).add(str);
+			} else if (dataSetDBController.isContain(str)) {
+				graftableLineList.get(DATASET_GRAFTABLE).add(str);
+			} else {
+				graftableLineList.get(UNGRAFTABLE).add(str);
 			}
 		}
 		return graftableLineList;
@@ -148,8 +217,10 @@ public class GraftableLineExtracter {
 		return sourceLines;
 
 	}
+
 	/**
 	 * ソースコードのASTを構築して、ASTVisitorを起動する
+	 *
 	 * @param source
 	 * @return
 	 * @throws Exception
