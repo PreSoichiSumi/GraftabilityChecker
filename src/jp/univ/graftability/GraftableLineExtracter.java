@@ -1,7 +1,6 @@
 package jp.univ.graftability;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -206,8 +205,7 @@ public class GraftableLineExtracter {
 				normalizedSourceFile = CommentRemover
 						.removeDelimiter(normalizedSourceFile);
 				// System.out.println("     loading to hashset...");
-				for (String line : Arrays.asList(normalizedSourceFile
-						.split("\n"))) {
+				for (String line : normalizedSourceFile.split("\n")) {
 					sourceLines.add(line.replaceAll("\n|\r", ""));
 				}
 			}
