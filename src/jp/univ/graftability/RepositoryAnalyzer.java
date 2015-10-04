@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import jp.univ.utils.FileUtils;
 
@@ -31,39 +30,27 @@ public class RepositoryAnalyzer {
 	private final File repos;
 	private final String outputPath;
 	private Repository repository;
-	private final Set<String> dataSet;
-	private final JiraIssueDumper jIssueDumper; // そのリポジトリに関係したissueを取得する
 	private final CommitRetriever cRetriever;
 	private final GraftableLineExtracter gLineExtracter;
 	private final String issueDBPath;
 	private final String datasetDBPath;
-	public RepositoryAnalyzer(File rep, Set<String> dSet,
-			String output,String issueDBPath,String datasetDBPath) throws Exception {
+	public RepositoryAnalyzer(File rep,	String output,
+			String issueDBPath,String datasetDBPath) throws Exception {
 		this.outputPath = output;
 		this.repos = rep;
-		this.dataSet = dSet;
 		this.issueDBPath=issueDBPath;
 		this.datasetDBPath=datasetDBPath;
 		setRepository();
 		String projectName = rep.getName();
-		this.jIssueDumper = new JiraIssueDumper(projectName);
-		/*this.cRetriever = new CommitRetriever(repository,
-				jIssueDumper.getIssueList(), projectName);*/
 		this.cRetriever= new CommitRetriever(repository, projectName);
-//		this.gLineExtracter = new GraftableLineExtracter(repository, dataSet,
-//				cRetriever.retrieveCommits2(issueDBPath));
 		this.gLineExtracter = new GraftableLineExtracter(repository, datasetDBPath
 				, cRetriever.retrieveCommits2(issueDBPath));
 	}
-	@Deprecated
+
 	public void execute() throws Exception {
 		PrintWriter pw = getPrintWriter(repos);
 
 		Watch wtch = new Watch();
-
-		System.out.println("GettingClosedCommit-" + repos.getName());
-		List<RevCommit> closedChildCommits =null;// cRetriever.retrieveCommits2();
-		wtch.check("GetClosedChildCommit");
 
 		System.out.println("End\nGettingGraftableLineList-" + repos.getName());
 		List<Pair<RevCommit, List<Multiset<String>>>> graftableLineList = gLineExtracter
@@ -92,48 +79,13 @@ public class RepositoryAnalyzer {
 		System.out.println("graftability : " + grftblty);
 		pw.close();
 	}
-
-	public void execute2() throws Exception {
-		PrintWriter pw = getPrintWriter(repos);
-
-		Watch wtch = new Watch();
-
-		System.out.println("End\nGettingGraftableLineList-" + repos.getName());
-		List<Pair<RevCommit, List<Multiset<String>>>> graftableLineList = gLineExtracter
-				.getGraftableLineList134_DB();
-		wtch.check("GetGraftableLineList");
-
-		System.out.println("End\nCalcingGraftability-Step1-" + repos.getName());
-		List<Pair<String, List<Double>>> grdentGrftblty = calcGraftabliry13(
-				graftableLineList, repos.getName());
-		wtch.check("CalcGraftability-Step1");
-
-		System.out.println("End\nCalcingGraftability-Step2-" + repos.getName());
-		Double grftblty = calcGrafability(grdentGrftblty);
-		System.out.println("End");
-		wtch.check("CalcGraftability-Step2");
-		printGraftableLinenNum(graftableLineList, repos.getName());
-
-		pw.println("graftability : " + grftblty);
-		pw.println();
-		pw.println(wtch);
-
-		outputAddedLines(outputPath + repos.getName() + "\\" + "addedLines.txt",
-				graftableLineList);
-		outputGraftableLines134(outputPath + repos.getName() + "\\"
-				+ "graftableLines.txt", graftableLineList); // otherProjAddedLineはなし
-		System.out.println("graftability : " + grftblty);
-		pw.close();
-	}
 	private void printGraftableLinenNum(List<Pair<RevCommit, List<Multiset<String>>>> lines ,String projName)throws Exception{
 		PrintWriter pw = getPrintWriterString(outputPath+projName+"\\"+"GraftableLines.csv");
 
-		//pw.println("CommitID,CommitTime[y/m/d h:m:s],CommitSize[lines],Graftability");
 		pw.println("CommitID,CommitTime[epoch second],CommitSize[lines],AddedLines,GraftableLines(Parental),GraftableLines(OtherProject),GraftableLines(ALL)");
 		for (Pair<RevCommit, List<Multiset<String>>> pair : lines) {
-			if(!pair.getRight().get(0).isEmpty()){//addedLinesが空でないなら計算		0...addedlines 1..Parental-GraftableLines	2..ancestoral 3..OtherProj
+			if(!pair.getRight().get(0).isEmpty()){	//0...addedlines 1..Parental-GraftableLines	2..ancestoral 3..OtherProj
 				pw.println(pair.getLeft().getId().toString()+","
-							//+format.format(new Date((long)(pair.getLeft().getCommitTime()*1000)))+","
 							+pair.getLeft().getCommitTime()+","
 							+pair.getRight().get(0).size()+","
 							+pair.getRight().get(1).size()+","
@@ -183,13 +135,10 @@ public class RepositoryAnalyzer {
 			List<Pair<RevCommit, List<Multiset<String>>>> lines, String projName)
 			throws Exception {
 		List<Pair<String, List<Double>>> graftabilities = new ArrayList<>();
-		// SimpleDateFormat format = new
-		// SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
 		PrintWriter pw = getPrintWriterString(outputPath + projName + "\\"
 				+ "Graftabilities.csv");
 
-		// pw.println("CommitID,CommitTime[y/m/d h:m:s],CommitSize[lines],Graftability");
 		pw.println("CommitID,CommitTime[epoch second],CommitSize[lines],Graftability(Parental),Graftability(OtherProject),Graftability(ALL)");
 		for (Pair<RevCommit, List<Multiset<String>>> pair : lines) {
 			if (!pair.getRight().get(0).isEmpty()) {// addedLinesが空でないなら計算
@@ -202,8 +151,6 @@ public class RepositoryAnalyzer {
 																				// 2..ALL
 				pw.println(pair.getLeft().getId().toString()
 						+ ","
-						// +format.format(new
-						// Date((long)(pair.getLeft().getCommitTime()*1000)))+","
 						+ pair.getLeft().getCommitTime() + ","
 						+ pair.getRight().get(0).size() + "," + grftbrty.get(0)
 						+ "," + grftbrty.get(1) + "," + grftbrty.get(2));

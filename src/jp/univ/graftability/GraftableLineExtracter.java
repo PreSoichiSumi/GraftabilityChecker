@@ -54,13 +54,13 @@ public class GraftableLineExtracter {
 		this.dataSetDBController = new DBController(datasetDBPath);
 	}
 
-	@Deprecated
 	/**
 	 * @return
 	 * @throws Exception
 	 */
 	public List<Pair<RevCommit, List<Multiset<String>>>> getGraftableLineList134()
 			throws Exception {
+		dataSetDBController.prepareForCheckingDataSet();
 		List<Pair<RevCommit, List<Multiset<String>>>> graftableLineList = new ArrayList<Pair<RevCommit, List<Multiset<String>>>>();
 		for (RevCommit com : analysisTargets) {
 			ChangeAnalyzer cAnalyzer = new ChangeAnalyzer(com, repo);
@@ -87,40 +87,7 @@ public class GraftableLineExtracter {
 		return graftableLineList;
 	}
 
-	/**
-	 * @return
-	 * @throws Exception
-	 */
-	public List<Pair<RevCommit, List<Multiset<String>>>> getGraftableLineList134_DB()
-			throws Exception {
-		dataSetDBController.prepareForCheckingDataSet();
-		List<Pair<RevCommit, List<Multiset<String>>>> graftableLineList = new ArrayList<Pair<RevCommit, List<Multiset<String>>>>();
-		for (RevCommit com : analysisTargets) {
-			ChangeAnalyzer cAnalyzer = new ChangeAnalyzer(com, repo);
 
-			List<Multiset<String>> lineSetTmp = new ArrayList<>();
-
-			for (int i = 0; i < 5; i++) {
-				lineSetTmp.add(LinkedHashMultiset.create());
-			}
-
-			Multiset<String> addedLines = cAnalyzer.getAddedLineSet();
-
-			if (addedLines.isEmpty())
-				continue; // 追加された行がなければ処理しない
-
-			lineSetTmp.get(0).addAll(addedLines);
-			lineSetTmp = getGraftableLines134_DB(com, lineSetTmp);
-			graftableLineList
-					.add(new MutablePair<RevCommit, List<Multiset<String>>>(
-							com, lineSetTmp));
-
-			System.out.println("commit solved");
-		}
-		return graftableLineList;
-	}
-
-	@Deprecated
 	/**
 	 * @param graftableLineList
 	 *            (addedLinesを除いて空)
@@ -128,29 +95,6 @@ public class GraftableLineExtracter {
 	 * @throws Exception
 	 */
 	private List<Multiset<String>> getGraftableLines134(RevCommit commit,
-			List<Multiset<String>> graftableLineList) throws Exception {
-
-		Multiset<String> parentLines = getNormalizedSourceLines(
-				commit.getParent(0), repo);
-		for (String str : graftableLineList.get(0)) {
-			if (parentLines.contains(str)) {
-				graftableLineList.get(1).add(str);
-			} else if (dataSet.contains(str)) {
-				graftableLineList.get(3).add(str);
-			} else {
-				graftableLineList.get(4).add(str);
-			}
-		}
-		return graftableLineList;
-	}
-
-	/**
-	 * @param graftableLineList
-	 *            (addedLinesを除いて空)
-	 * @return graftableLineList
-	 * @throws Exception
-	 */
-	private List<Multiset<String>> getGraftableLines134_DB(RevCommit commit,
 			List<Multiset<String>> graftableLineList) throws Exception {
 
 		Multiset<String> parentLines = getNormalizedSourceLines(
@@ -177,7 +121,6 @@ public class GraftableLineExtracter {
 	 */
 	private Multiset<String> getNormalizedSourceLines(RevCommit commit,
 			Repository repo) throws Exception {
-		// System.out.println("StartAddHSet");
 		RevTree rt = commit.getTree();
 		TreeWalk tw = new TreeWalk(repo);
 
@@ -187,31 +130,19 @@ public class GraftableLineExtracter {
 		Multiset<String> sourceLines = HashMultiset.create();
 
 		while (tw.next()) { // commitのすべてのファイルについて
-
-			// pathList.add(tw.getPathString().toString());
-			// System.out.println(tw.getPathString().toString()+"を追加");
-			// System.out.println("walk "+ tw.getPathString());
 			if (tw.getPathString().toString().endsWith(".java")) {
 
 				ObjectReader reader = repo.newObjectReader();
-				// System.out.println("     reading...");
 				byte[] data = reader.open(tw.getObjectId(0)).getBytes();
-				// System.out.println("     parsing...");
-				// String normalizedSourceFile = normalizeSource(new
-				// String(data,"utf-8"));
 				String normalizedSourceFile = normalizeSource(CommentRemover
 						.deleteETC(new String(data, "utf-8")));
-				// if(removeBrackets)sourceFile=CommentRemover.removeDelimiter(sourceFile);
 				normalizedSourceFile = CommentRemover
 						.removeDelimiter(normalizedSourceFile);
-				// System.out.println("     loading to hashset...");
 				for (String line : normalizedSourceFile.split("\n")) {
 					sourceLines.add(line.replaceAll("\n|\r", ""));
 				}
 			}
 		}
-
-		// System.out.println("EndAddHSet\n");
 		return sourceLines;
 
 	}
@@ -224,12 +155,11 @@ public class GraftableLineExtracter {
 	 * @throws Exception
 	 */
 	private String normalizeSource(String source) throws Exception {
-		// -------------正規化----------------------
 		Document doc = new Document(source);
 
 		ASTParser parser = ASTParser.newParser(AST.JLS4);
 		parser.setSource(source.toString().toCharArray());
-		parser.setKind(ASTParser.K_COMPILATION_UNIT); // ここ新しい
+		parser.setKind(ASTParser.K_COMPILATION_UNIT);
 		CompilationUnit unit = (CompilationUnit) parser
 				.createAST(new org.eclipse.core.runtime.NullProgressMonitor());
 		SourceVisitor visitor = new SourceVisitor(unit);
