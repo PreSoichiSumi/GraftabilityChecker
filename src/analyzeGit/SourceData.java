@@ -1,6 +1,5 @@
 package analyzeGit;
 
-import jp.ac.osaka_u.ist.sdl.prevol.data.VectorData;
 
 public class SourceData {
 
@@ -10,13 +9,10 @@ public class SourceData {
 
 	private String program;
 
-	private VectorData vector;	//状態ベクトル
-
 	public SourceData(){
 		this.name = null;
 		this.signature = null;
 		this.program = null;
-		this.vector = null;
 	}
 
 	public String getName() {
@@ -43,11 +39,4 @@ public class SourceData {
 		this.program = program;
 	}
 
-	public void setVector(VectorData vector) {
-		this.vector = vector;
-	}
-
-	public VectorData getVector(){
-		return vector;
-	}
 }

@@ -6,8 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import jp.ac.osaka_u.ist.sdl.prevol.data.VectorData;
-
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
@@ -38,7 +36,6 @@ public class SourceVisitor extends ASTVisitor {
 	CompilationUnit root;
 
 	//private List<MethodData> methodList;
-	public VectorData vector; 
 	private boolean normVariable=	false;
 	private boolean normMethod	=	false;
 	private boolean normType	=	false;

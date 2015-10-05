@@ -20,10 +20,6 @@ public class Main {
 			dbMaker.createDataSetIndex();
 		}*/
 
-
-		//RepositoryAnalyzer rAnalyzer = new RepositoryAnalyzer(
-		//		new File(reposPath	 + "\\felix"), outputPath, issueDBPath, dataSetDBPath);
-		//rAnalyzer.execute();
 		 GraftabilityChecker gChecker=new GraftabilityChecker(reposPath,
 				 outputPath, dataSetDBPath,issueDBPath);
 		 gChecker.execute();
