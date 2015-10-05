@@ -2,7 +2,6 @@ package jp.univ.graftability;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -26,7 +25,6 @@ import com.google.common.collect.Multiset;
 
 public class GraftableLineExtracter {
 	private Repository repo;
-	private Set<String> dataSet;
 	private List<RevCommit> analysisTargets;
 	private String dataSetDBPath;
 	private DBController dataSetDBController;
@@ -36,14 +34,6 @@ public class GraftableLineExtracter {
 	final private int DATASET_GRAFTABLE = 3;
 	final private int UNGRAFTABLE = 4;
 
-	@Deprecated
-	public GraftableLineExtracter(Repository repo, Set<String> dataSet,
-			List<RevCommit> analysisTargets) {
-		super();
-		this.repo = repo;
-		this.dataSet = dataSet;
-		this.analysisTargets = analysisTargets;
-	}
 
 	public GraftableLineExtracter(Repository repo, String datasetDBPath,
 			List<RevCommit> analysisTargets) {

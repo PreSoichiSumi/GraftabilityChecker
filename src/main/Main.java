@@ -1,8 +1,6 @@
 package main;
 
-import java.io.File;
-
-import jp.univ.graftability.RepositoryAnalyzer;
+import jp.univ.graftability.GraftabilityChecker;
 
 
 public class Main {
@@ -23,12 +21,12 @@ public class Main {
 		}*/
 
 
-		RepositoryAnalyzer rAnalyzer = new RepositoryAnalyzer(
-				new File(reposPath	 + "\\felix"), outputPath, issueDBPath, dataSetDBPath);
-		rAnalyzer.execute();
-		// GraftabilityChecker gChecker=new
-		// GraftabilityChecker(reposPath,dataSetPath,outputPath);
-		// gChecker.execute();
+		//RepositoryAnalyzer rAnalyzer = new RepositoryAnalyzer(
+		//		new File(reposPath	 + "\\felix"), outputPath, issueDBPath, dataSetDBPath);
+		//rAnalyzer.execute();
+		 GraftabilityChecker gChecker=new GraftabilityChecker(reposPath,
+				 outputPath, dataSetDBPath,issueDBPath);
+		 gChecker.execute();
 	}
 
 }

@@ -26,6 +26,11 @@ public class DBController {
 		super();
 		this.dbPath = dbPath;
 		this.con=DBMaker.createConnection(dbPath);
+		try{
+			this.con.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
+		}catch(SQLException e){
+			e.printStackTrace();
+		}
 	}
 
 	/**

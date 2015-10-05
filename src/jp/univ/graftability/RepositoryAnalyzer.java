@@ -26,20 +26,16 @@ import com.google.common.collect.Multiset;
  * 1つのリポジトリを解析する ・バグ修正コミットの特定 ・コミットで追加されたソースコード行の特定
  * ・親リビジョンまたはデータセット中にソースコード行が現れるか調べる
  */
-public class RepositoryAnalyzer {
+public class RepositoryAnalyzer extends Thread {
 	private final File repos;
 	private final String outputPath;
 	private Repository repository;
 	private final CommitRetriever cRetriever;
 	private final GraftableLineExtracter gLineExtracter;
-	private final String issueDBPath;
-	private final String datasetDBPath;
 	public RepositoryAnalyzer(File rep,	String output,
 			String issueDBPath,String datasetDBPath) throws Exception {
 		this.outputPath = output;
 		this.repos = rep;
-		this.issueDBPath=issueDBPath;
-		this.datasetDBPath=datasetDBPath;
 		setRepository();
 		String projectName = rep.getName();
 		this.cRetriever= new CommitRetriever(repository, projectName);
@@ -47,37 +43,43 @@ public class RepositoryAnalyzer {
 				, cRetriever.retrieveCommits2(issueDBPath));
 	}
 
-	public void execute() throws Exception {
-		PrintWriter pw = getPrintWriter(repos);
+	public void run(){
+		try{
+			PrintWriter pw = getPrintWriter(repos);
 
-		Watch wtch = new Watch();
+			Watch wtch = new Watch();
 
-		System.out.println("End\nGettingGraftableLineList-" + repos.getName());
-		List<Pair<RevCommit, List<Multiset<String>>>> graftableLineList = gLineExtracter
-				.getGraftableLineList134();
-		wtch.check("GetGraftableLineList");
+			System.out.println("End\nGettingGraftableLineList-" + repos.getName());
+			List<Pair<RevCommit, List<Multiset<String>>>> graftableLineList = gLineExtracter
+					.getGraftableLineList134();
+			wtch.check("GetGraftableLineList");
 
-		System.out.println("End\nCalcingGraftability-Step1-" + repos.getName());
-		List<Pair<String, List<Double>>> grdentGrftblty = calcGraftabliry13(
-				graftableLineList, repos.getName());
-		wtch.check("CalcGraftability-Step1");
+			System.out.println("End\nCalcingGraftability-Step1-" + repos.getName());
+			List<Pair<String, List<Double>>> grdentGrftblty = calcGraftabliry13(
+					graftableLineList, repos.getName());
+			wtch.check("CalcGraftability-Step1");
 
-		System.out.println("End\nCalcingGraftability-Step2-" + repos.getName());
-		Double grftblty = calcGrafability(grdentGrftblty);
-		System.out.println("End");
-		wtch.check("CalcGraftability-Step2");
-		printGraftableLinenNum(graftableLineList, repos.getName());
+			System.out.println("End\nCalcingGraftability-Step2-" + repos.getName());
+			Double grftblty = calcGrafability(grdentGrftblty);
+			System.out.println("End");
+			wtch.check("CalcGraftability-Step2");
+			printGraftableLinenNum(graftableLineList, repos.getName());
 
-		pw.println("graftability : " + grftblty);
-		pw.println();
-		pw.println(wtch);
+			pw.println("graftability : " + grftblty);
+			pw.println();
+			pw.println(wtch);
 
-		outputAddedLines(outputPath + repos.getName() + "\\" + "addedLines.txt",
-				graftableLineList);
-		outputGraftableLines134(outputPath + repos.getName() + "\\"
-				+ "graftableLines.txt", graftableLineList); // otherProjAddedLineはなし
-		System.out.println("graftability : " + grftblty);
-		pw.close();
+			outputAddedLines(outputPath + repos.getName() + "\\" + "addedLines.txt",
+					graftableLineList);
+			outputGraftableLines134(outputPath + repos.getName() + "\\"
+					+ "graftableLines.txt", graftableLineList); // otherProjAddedLineはなし
+			System.out.println("graftability : " + grftblty);
+			pw.close();
+		}catch(InterruptedException e){
+			e.printStackTrace();
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	private void printGraftableLinenNum(List<Pair<RevCommit, List<Multiset<String>>>> lines ,String projName)throws Exception{
 		PrintWriter pw = getPrintWriterString(outputPath+projName+"\\"+"GraftableLines.csv");

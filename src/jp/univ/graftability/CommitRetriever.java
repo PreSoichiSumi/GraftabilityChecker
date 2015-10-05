@@ -32,14 +32,6 @@ public class CommitRetriever {
 	private Repository repo;
 	private List<Iterable<Issue>> issueList;
 	private String projectName;
-	@Deprecated
-	public CommitRetriever(Repository repo, List<Iterable<Issue>> issueList,
-			String projectName) {
-		super();
-		this.repo = repo;
-		this.issueList = issueList;
-		this.projectName = projectName;
-	}
 	public CommitRetriever(Repository repo,String projectName) {
 		super();
 		this.repo = repo;

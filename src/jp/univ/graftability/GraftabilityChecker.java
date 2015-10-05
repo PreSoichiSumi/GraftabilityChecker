@@ -22,11 +22,12 @@ public class GraftabilityChecker {
 	public void execute() throws Exception{
 		File reposFolder=new File(reposPath);
 		reposArray = reposFolder.listFiles(); // 絶対パスで帰ってくる
-		System.out.println("gettingucidataset");
+		System.out.println("thread start");
 
 		for (File repos : reposArray) {
+			System.out.println(repos.getName()+"-start");
 			RepositoryAnalyzer rAnalyzer=new RepositoryAnalyzer(repos, outputPath,issueDBPath,dataSetDBPath);
-			rAnalyzer.execute();
+			rAnalyzer.start();
 		}
 	}
 
