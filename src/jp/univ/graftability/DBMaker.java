@@ -13,8 +13,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import jp.univ.utils.CommentRemover;
 import jp.univ.utils.FileUtils;
-import analyzeGit.CommentRemover;
 
 import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.google.common.hash.HashFunction;

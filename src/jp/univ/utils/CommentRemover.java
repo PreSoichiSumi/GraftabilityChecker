@@ -1,4 +1,4 @@
-package analyzeGit;
+package jp.univ.utils;
 
 import java.io.BufferedReader;
 import java.io.File;

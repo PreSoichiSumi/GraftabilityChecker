@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import jp.univ.utils.CommentRemover;
+import jp.univ.utils.SourceVisitor;
+
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jdt.core.dom.AST;
@@ -30,9 +33,6 @@ import org.eclipse.jgit.treewalk.AbstractTreeIterator;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.treewalk.filter.PathSuffixFilter;
 import org.eclipse.text.edits.TextEdit;
-
-import analyzeGit.CommentRemover;
-import analyzeGit.SourceVisitor;
 
 import com.google.common.collect.LinkedHashMultiset;
 import com.google.common.collect.Multiset;

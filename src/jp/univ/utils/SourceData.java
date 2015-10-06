@@ -1,4 +1,4 @@
-package analyzeGit;
+package jp.univ.utils;
 
 
 public class SourceData {

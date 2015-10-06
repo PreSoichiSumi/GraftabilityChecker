@@ -11,18 +11,17 @@ public class Main {
 	private static final String dataSetDBPath="F:\\s-sumi\\Res\\dataSet.db";
 
 	public static void main(String[] args) throws Exception {
+		 GraftabilityChecker gChecker=new GraftabilityChecker(reposPath,
+				 outputPath, dataSetDBPath,issueDBPath);
+		 gChecker.execute();
 
-		/*{
+		 /*{
 			DBMaker dbMaker=new DBMaker(dataSetDBPath, dataSetPath, issueDBPath);
 			//dbMaker.createDataSetDB();
 			//dbMaker.makeDataSetDataBase();
 			System.out.println("creating index");
 			dbMaker.createDataSetIndex();
 		}*/
-
-		 GraftabilityChecker gChecker=new GraftabilityChecker(reposPath,
-				 outputPath, dataSetDBPath,issueDBPath);
-		 gChecker.execute();
 	}
 
 }

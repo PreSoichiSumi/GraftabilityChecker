@@ -10,8 +10,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import jp.univ.utils.CommentRemover;
 import jp.univ.utils.FileUtils;
-import analyzeGit.CommentRemover;
 
 /**
  * DataSetを読み込んで保持するクラス

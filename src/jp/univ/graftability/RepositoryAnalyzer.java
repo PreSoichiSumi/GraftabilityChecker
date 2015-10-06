@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import jp.univ.utils.FileUtils;
+import jp.univ.utils.Watch;
 
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -16,8 +17,6 @@ import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-
-import analyzeGit.Watch;
 
 import com.google.common.collect.Multiset;
 

@@ -1,4 +1,4 @@
-package analyzeGit;
+package jp.univ.utils;
 
 //import java.util.ArrayList;
 import java.util.Arrays;
