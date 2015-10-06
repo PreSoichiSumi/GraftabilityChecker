@@ -20,8 +20,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 
-@SuppressWarnings("restriction")
-
 public class CommentRemover {
 
 	enum STATE {

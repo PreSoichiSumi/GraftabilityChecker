@@ -1,6 +1,5 @@
 package jp.univ.utils;
 
-//import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -35,7 +34,6 @@ public class SourceVisitor extends ASTVisitor {
 
 	CompilationUnit root;
 
-	//private List<MethodData> methodList;
 	private boolean normVariable=	false;
 	private boolean normMethod	=	false;
 	private boolean normType	=	false;
